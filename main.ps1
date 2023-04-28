@@ -22,23 +22,23 @@ $sftpPort = 22
 
 $connections = Get-NetTCPConnection -State Established
 
-$sslConnections = $connections | Where-Object { ($_.LocalPort -eq $watchingPort) -or ($_.RemotePort -eq $watchingPort) }
+$watchingPortConnections = $connections | Where-Object { ($_.LocalPort -eq $watchingPort) -or ($_.RemotePort -eq $watchingPort) }
 $sftpConnections = $connections | Where-Object { ($_.LocalPort -eq $sftpPort) -or ($_.RemotePort -eq $sftpPort) }
 
-$numberOfSslConnections = $sslConnections.Count
-$numberOfSftpConnections = $sftpConnections.Count
+$numberOfWatchingPortConnections = @($watchingPortConnections).Count
+$numberOfSftpConnections = @($sftpConnections).Count
 
 $InternalIPs = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -ne "Loopback Pseudo-Interface 1" -and $_.AddressFamily -eq "IPv4" }).IPAddress
 $LastInternalIP = $InternalIPs[-1] # Select the last IP address from the list
 Clear-Host
 Write-Host "Internal IP Address is: $LastInternalIP"
 Write-Host "External IP Address is: $($IP.ip)"
-Write-Host "Number of active SSL connections: $numberOfSslConnections"
+Write-Host "Number of active SSL connections: $numberOfWatchingPortConnections"
 Write-Host "Number of active SFTP connections: $numberOfSftpConnections"
 
-if ($numberOfSslConnections -gt 0) {
+if ($numberOfWatchingPortConnections -gt 0) {
     Write-Host "`nSSL connection details:`n"
-    $sslConnections | Format-Table -Property LocalAddress, LocalPort, RemoteAddress, RemotePort, State, OwningProcess
+    $watchingPortConnections | Format-Table -Property LocalAddress, LocalPort, RemoteAddress, RemotePort, State, OwningProcess
 }
 
 if ($numberOfSftpConnections -gt 0) {
